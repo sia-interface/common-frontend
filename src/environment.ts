@@ -7,7 +7,7 @@ export const ENVIRONMENT = process.env.NODE_ENV === 'development' ? {
     baseUrl: ""
   } : {
     productionMode: true,
-    authServiceUrl: '/api/ui',
-    billingServiceUrl: '/api/ui/work/billing',
+    authServiceUrl: '/api/backend',
+    billingServiceUrl: '/api/backend/work/billing',
     baseUrl: "/ui"
   }
