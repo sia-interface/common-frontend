@@ -1,5 +1,6 @@
 import {css, customElement, html, internalProperty, LitElement, property} from "lit-element"
 
+import '@vaadin/vaadin-button'
 import '@vaadin/vaadin-progress-bar'
 
 import '../../../core/common/components/info-message'
@@ -8,7 +9,7 @@ import '../../../core/common/components/info-panel'
 import {CalculationStatus, UploadResult} from "./model"
 import {ElementAlign} from "../../../core/common/components/info-panel"
 import {ENVIRONMENT} from "../../../../environment";
-import {later} from "../../../core/common/utils";
+import {CloseDialogEvent, later} from "../../../core/common/utils";
 import {UserHttpService} from "../../../core/common/services/http-service"
 
 @customElement('upload-and-calculations-status')
@@ -26,6 +27,18 @@ export class UploadAndCalculationsStatus extends LitElement {
         }
         info-panel {
             min-width: 40em;
+        }
+        .buttons-bar {
+            margin-top: 1em;
+            display: flex;
+            justify-content: flex-end;
+        }
+        .progress-bar {
+            margin-top: 1em;
+            color: darkgray;
+        }
+        .buttons-bar vaadin-button {
+            margin-left: 1em;
         }
         `
     }
@@ -57,6 +70,10 @@ export class UploadAndCalculationsStatus extends LitElement {
         }
     }
 
+    private closeDialog() {
+        this.dispatchEvent(new CloseDialogEvent({}));
+    }
+
     render() {
         if (this.uploadResult) {
             const result = this.uploadResult
@@ -83,7 +100,7 @@ export class UploadAndCalculationsStatus extends LitElement {
 
     private renderJobRunning() {
         return html`
-            <div style="margin-top: 0.5em">
+            <div class="progress-bar">
             ${this.calculationStatus && this.calculationStatus.searchCompleted ? "calculare a indicaţiilor" : "căutare a contoarelor"  }
             <vaadin-progress-bar indeterminate value="0"></vaadin-progress-bar>
             </div>            
@@ -99,6 +116,10 @@ export class UploadAndCalculationsStatus extends LitElement {
             ]
             return html`
             <info-panel header="INFORMAŢIE DESPRE CALCUL" .elements="${elements}"></info-panel>
+            <div class="buttons-bar">
+                <vaadin-button @click="${this.closeDialog}">RAPORT</vaadin-button>
+                <vaadin-button @click="${this.closeDialog}">ÎNCHIDE</vaadin-button>
+            </div>            
             `
         } else {
             return html``

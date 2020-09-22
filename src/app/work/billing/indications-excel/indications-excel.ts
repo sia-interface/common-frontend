@@ -13,6 +13,7 @@ import {AuthInfoService} from "../../../core/common/services/auth-info.service"
 import './upload-and-calculations-status'
 import {UploadResult} from "./model"
 import {UploadAndCalculationsStatus} from "./upload-and-calculations-status";
+import {CloseDialogEvent} from "../../../core/common/utils";
 
 @customElement('billing-indications-excel')
 export class IndicationsExcel extends LitElement {
@@ -31,14 +32,34 @@ export class IndicationsExcel extends LitElement {
             uploadElement.addEventListener('upload-before', this.listenUploadBefore)
             uploadElement.addEventListener('upload-response', this.listenUploadResponse)
         }
+
+        const dialog = this.shadowRoot!.querySelector('vaadin-dialog') as any
+        if (dialog) {
+            document.addEventListener(CloseDialogEvent.eventName, () => {
+                console.info("I am closed")
+                dialog.opened = false;
+            })
+        }
     }
 
-    /*
+    connectedCallback() {
+        super.connectedCallback();
+        document.addEventListener(CloseDialogEvent.eventName, this.listenCloseDialog)
+    }
+
     disconnectedCallback() {
         super.disconnectedCallback();
-        window.removeEventListener('upload-before', this.listenUploadBefore)
+        window.removeEventListener(CloseDialogEvent.eventName, this.listenCloseDialog)
     }
-     */
+
+    listenCloseDialog = (_event: Event) => {
+        const dialog = this.shadowRoot!.querySelector('vaadin-dialog') as any
+        const uploadElement = this.shadowRoot!.querySelector('vaadin-upload')
+        if (dialog && uploadElement) {
+            dialog.opened = false;
+            (uploadElement as UploadElement).files = [];
+        }
+    }
 
     listenUploadBefore = (event: Event) => {
         const file = (event as CustomEvent).detail.file as UploadFile
