@@ -2,11 +2,14 @@ import {
     LitElement, css, html, customElement, property
 } from 'lit-element'
 
+export type ElementAlign =  'left' | 'center' | 'right'
+
 export interface InfoElement {
     header: string
     content: string
     span?: number
     width?: number
+    align?: ElementAlign
 }
 
 @customElement('info-panel')
@@ -66,15 +69,18 @@ export class InfoPanel extends LitElement {
         return html`
         <h4>${this.header}</h4>
         <div class="content">
-        ${ this.elements.map(element =>
-            html`
-            <div class="element" 
-                style="flex: ${element.span??1} ${element.width? "; max-width:" + element.width + "em" : ""}"
-            >
+        ${ this.elements.map(element => {
+            const flex = `flex: ${element.span ?? 1};`
+            const width = `${element.width ? "max-width: " + element.width + "em;" : ""}`
+            const spanStyle = `text-align: ${element.align? element.align : 'left'};`
+            const style = `${flex} ${width}`
+            return html`
+            <div class="element" style="${style}">
               <h5>${element.header}</h5>
-              <span>${element.content}</span>
+              <span style="${spanStyle}">${element.content}</span>
             </div>
             `
+            }
         ) }        
         </div>
         `

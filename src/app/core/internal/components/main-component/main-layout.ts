@@ -12,6 +12,7 @@ import '../login/login-component'
 import '../speed-dial/speed-dial'
 import './advanced-router'
 import './form-name-view'
+import './notification-canvas'
 
 import {NotificationEvent, NotificationMessage} from '../../services/notification.service'
 
@@ -61,22 +62,14 @@ export class MainLayout extends LitElement {
                     root.firstElementChild.remove()
                 }
 
-                const iconElement = window.document.createElement('iron-icon')
-                const icon = message.severity === 'info'? 'vaadin:info-circle-o' : 'vaadin:exclamation-circle-o'
-                iconElement.setAttribute('icon', icon)
-                iconElement.style.height = '32px'
-                iconElement.style.width = '32px'
-                iconElement.style.margin = '1em'
+                // TODO: optimize render canvas if allready exists !!!
 
+                const notificationCanvas = document.createElement('notification-canvas')
+                notificationCanvas.setAttribute('severity', message.severity)
                 const plainText = window.document.createTextNode(message.text)
+                notificationCanvas.appendChild(plainText)
 
-                const container = window.document.createElement('div')
-                container.style.color = message.severity === 'info'? 'steelblue' : "darkred"
-                container.style.fontWeight = "bold"
-                container.appendChild(iconElement)
-                container.appendChild(plainText)
-
-                root.appendChild(container)
+                root.appendChild(notificationCanvas)
             }
 
             notification.open()
