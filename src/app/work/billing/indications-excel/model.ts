@@ -16,3 +16,9 @@ export interface CalculationStatus {
     metersFoundRows: number
     calculatedRows:  number
 }
+
+export interface RadioIndicationsInfo {
+    id:            number
+    sysdate:       string
+    excelFilename: string
+}

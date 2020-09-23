@@ -6,14 +6,18 @@ import '@vaadin/vaadin-dialog'
 import '@vaadin/vaadin-upload'
 import { UploadElement, UploadFile } from '@vaadin/vaadin-upload'
 
-import '../../../core/common/components/centered-box'
-import {ENVIRONMENT} from "../../../../environment";
+import '../../../core/common/components/info-message'
+
+import {ENVIRONMENT} from "../../../../environment"
 import {AuthInfoService} from "../../../core/common/services/auth-info.service"
 
-import './upload-and-calculations-status'
 import {UploadResult} from "./model"
-import {UploadAndCalculationsStatus} from "./upload-and-calculations-status";
-import {CloseDialogEvent} from "../../../core/common/utils";
+import {CloseDialogEvent} from "../../../core/common/utils"
+
+import './upload-and-calculations-status'
+import './report-control'
+import {UploadAndCalculationsStatus} from "./upload-and-calculations-status"
+import {ReportControl} from "./report-control";
 
 @customElement('billing-indications-excel')
 export class IndicationsExcel extends LitElement {
@@ -35,9 +39,11 @@ export class IndicationsExcel extends LitElement {
 
         const dialog = this.shadowRoot!.querySelector('vaadin-dialog') as any
         if (dialog) {
-            document.addEventListener(CloseDialogEvent.eventName, () => {
-                console.info("I am closed")
+            document.addEventListener(CloseDialogEvent.eventName, (e) => {
                 dialog.opened = false;
+
+                const reportControl = this.shadowRoot!.querySelector('report-control') as ReportControl
+                reportControl.refresh(e)
             })
         }
     }
@@ -91,8 +97,13 @@ export class IndicationsExcel extends LitElement {
         // language=CSS
         return css`
         :host {
-            height: 100%;
-            flex-grow: 1;                                
+            height: calc(100% - 4em);
+            flex-grow: 1;   
+            display: flex;
+            flex-direction: column;
+            margin-top: 3em;
+            align-items: center;
+            box-sizing: border-box;
         }
         span {
             margin-top: 1em;
@@ -102,15 +113,15 @@ export class IndicationsExcel extends LitElement {
             font-style: normal;
             font-weight: bold;
         }
-        centered-box {
-            flex-direction: column;
+        report-control {
+            margin-top: 4em;
         }
         `
     }
+
     // maximum file size 256Kb
     render() {
         return html`
-        <centered-box>
         <vaadin-upload 
             nodrop 
             max-files="1" 
@@ -120,7 +131,8 @@ export class IndicationsExcel extends LitElement {
         ></vaadin-upload>
         <span>prelucrare <em>.XLSX</em> fişiere (de la 2007 format standard al MICROSOFT OFFICE)</span>
         <vaadin-dialog no-close-on-esc no-close-on-outside-click></vaadin-dialog>
-        </centered-box>`
+        <report-control></report-control>
+        `
     }
 
 }

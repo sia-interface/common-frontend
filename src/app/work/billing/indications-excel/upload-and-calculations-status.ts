@@ -71,7 +71,7 @@ export class UploadAndCalculationsStatus extends LitElement {
     }
 
     private closeDialog() {
-        this.dispatchEvent(new CloseDialogEvent({}));
+        this.dispatchEvent(new CloseDialogEvent({ fileid: this.uploadResult?.fileID }));
     }
 
     render() {
@@ -117,7 +117,6 @@ export class UploadAndCalculationsStatus extends LitElement {
             return html`
             <info-panel header="INFORMAŢIE DESPRE CALCUL" .elements="${elements}"></info-panel>
             <div class="buttons-bar">
-                <vaadin-button @click="${this.closeDialog}">RAPORT</vaadin-button>
                 <vaadin-button @click="${this.closeDialog}">ÎNCHIDE</vaadin-button>
             </div>            
             `
