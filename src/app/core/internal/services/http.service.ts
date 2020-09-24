@@ -5,13 +5,12 @@ const HEADER_CONTENT_TYPE: string = 'Content-Type';
 const CONTENT_TYPE_FORM: string = 'application/x-www-form-urlencoded'
 const CONTENT_TYPE_JSON: string = 'application/json'
 
-// const ERR_UNAUTHORIZED = Symbol("Autentificarea a eșuat")
-
 export const ERR_UNAUTHORIZED_TEXT = "Autentificarea a eșuat"
 
 const ERR_NOTFOUND_TEXT = "Resursa nu a fost găsită pe server"
 const ERR_DEFAULT = "Eroare neașteptată de interacţiune cu serverul"
 const ERR_HTTP_REQUEST_INVALID = 'HTTP request greşit'
+const ERR_FAILED_TO_FETCH = 'Nu a fost făcută legatura cu serverul'
 const ERR_INTERNAL_ERROR = 'Eroare internala la server'
 
 export interface ErrorMessage {
@@ -87,7 +86,9 @@ export class HttpService {
                 default: return await response.json()
             }
         } catch (err) {
-            const errorText = err.message && isString(err.message)? err.message : ERR_DEFAULT
+            const errorText = err instanceof TypeError && err.message === 'Failed to fetch' ?
+                ERR_FAILED_TO_FETCH :
+                ( err.message && isString(err.message)? err.message : ERR_DEFAULT )
 
             console.error(errorText)
 

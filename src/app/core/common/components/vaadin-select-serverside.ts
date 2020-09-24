@@ -63,12 +63,12 @@ export class VaadinSelectServerside<T> extends LitElement {
         }
         if (this._selectElement && this._renderer) {
             this._selectElement.renderer = (root, select) => {
-                this.renderVaadinSelect(root, select, selectedValue)
+                this.renderVaadinSelect(root, select!, selectedValue)
             }
         }
     }
 
-    private renderVaadinSelect = (root: HTMLElement, select?: SelectElement, preferredValue?: string) => {
+    private renderVaadinSelect = (root: HTMLElement, select: SelectElement, preferredValue?: string) => {
         // Check if there is a list-box generated with the previous renderer call
         // to update its content instead of recreation
         if (root.firstChild && !this._needRerender) {
@@ -103,7 +103,8 @@ export class VaadinSelectServerside<T> extends LitElement {
             })
             root.appendChild(listBox)
 
-            select?.setAttribute('value', selectedValue!)
+            select.setAttribute('value', selectedValue!)
+            select.disabled = false
             this._needRerender = false
         } else {
             const listBox = window.document.createElement('vaadin-list-box')
@@ -113,7 +114,8 @@ export class VaadinSelectServerside<T> extends LitElement {
             listBox.appendChild(vaadinItem)
             root.appendChild(listBox)
 
-            select?.setAttribute('value', 'I')
+            select.setAttribute('value', 'I')
+            select.disabled = true
 
             if (this._renderer) {
                 this._needRerender = false

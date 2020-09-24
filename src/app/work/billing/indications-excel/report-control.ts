@@ -21,7 +21,6 @@ export class ReportControl extends LitElement {
         {value: "I", name: "Indicaţii necalculate" } // indication
     ]
 
-    // @internalProperty() list?: RadioIndicationsInfo[]
     @internalProperty() preferredFileID: number = 0
     @internalProperty() selectedReportType: string = ReportControl.reportTypes[0].value
 
@@ -71,19 +70,6 @@ export class ReportControl extends LitElement {
         }
     }
 
-    /*
-    private changeSelectedFile(_event: CustomEvent) {
-        const select = this.shadowRoot!.querySelector("#select-file-id") as SelectElement
-        console.info("id of selected file: " + select.value)
-
-        var newValue = +event.detail.value
-        if (newValue !== this.selectedFileID) {
-            this.selectedFileID = newValue
-        }
-
-    }
-    */
-
     private changeSelectedReport(event: CustomEvent) {
         var newValue = event.detail.value
 
@@ -105,6 +91,7 @@ export class ReportControl extends LitElement {
             id="select-file-id"
             label="Data şi fişierul"
             url="${ReportControl.listUrl}"
+            notElementsText="Nu există fişiere încărcate"
         ></vaadin-select-serverside>        
         
         <vaadin-select 
