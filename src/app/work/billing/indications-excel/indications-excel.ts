@@ -1,5 +1,5 @@
 import {
-    html, customElement, css, LitElement
+    html, customElement, css, LitElement, query
 } from 'lit-element'
 
 import '@vaadin/vaadin-dialog'
@@ -16,36 +16,35 @@ import {CloseDialogEvent} from "../../../core/common/utils"
 
 import './upload-and-calculations-status'
 import './report-control'
+import './report-view'
 import {UploadAndCalculationsStatus} from "./upload-and-calculations-status"
-import {ReportControl} from "./report-control";
+import {ReportControl, ShowReportEvent} from "./report-control"
+import {ReportView} from "./report-view"
 
 @customElement('billing-indications-excel')
 export class IndicationsExcel extends LitElement {
     static uploadTarget = ENVIRONMENT.billingServiceUrl + "/indications/excel/upload"
 
+    @query("vaadin-upload") _uploadElement?: UploadElement
+    @query("vaadin-dialog") _vaadinDialog?: HTMLElement
+    @query("indications-excel-report-control") _reportControl?: ReportControl
+    @query("indications-excel-report-view") _reportView?: ReportView
+
     firstUpdated() {
         // super.connectedCallback();
-        const uploadElement = this.shadowRoot!.querySelector('vaadin-upload')
-        if (uploadElement) {
             console.info("upload element found");
 
-            (uploadElement as UploadElement).headers = {
-                'Authorization': `Bearer ${AuthInfoService.authorizationToken}`
-            }
-
-            uploadElement.addEventListener('upload-before', this.listenUploadBefore)
-            uploadElement.addEventListener('upload-response', this.listenUploadResponse)
+        this._uploadElement!.headers = {
+            'Authorization': `Bearer ${AuthInfoService.authorizationToken}`
         }
 
-        const dialog = this.shadowRoot!.querySelector('vaadin-dialog') as any
-        if (dialog) {
-            document.addEventListener(CloseDialogEvent.eventName, (e) => {
-                dialog.opened = false;
+        this._uploadElement!.addEventListener('upload-before', this.listenUploadBefore)
+        this._uploadElement!.addEventListener('upload-response', this.listenUploadResponse)
 
-                const reportControl = this.shadowRoot!.querySelector('report-control') as ReportControl
-                reportControl.refresh(e)
-            })
-        }
+        document.addEventListener(CloseDialogEvent.eventName, (e) => {
+            (this._vaadinDialog as any).opened = false;
+            this._reportControl!.refresh(e)
+        })
     }
 
     connectedCallback() {
@@ -58,13 +57,17 @@ export class IndicationsExcel extends LitElement {
         window.removeEventListener(CloseDialogEvent.eventName, this.listenCloseDialog)
     }
 
+    private onShowReport(event: ShowReportEvent) {
+        this._reportView!.showReport(event.detail)
+    }
+
+    private onClearReport() {
+        this._reportView!.clearReport()
+    }
+
     listenCloseDialog = (_event: Event) => {
-        const dialog = this.shadowRoot!.querySelector('vaadin-dialog') as any
-        const uploadElement = this.shadowRoot!.querySelector('vaadin-upload')
-        if (dialog && uploadElement) {
-            dialog.opened = false;
-            (uploadElement as UploadElement).files = [];
-        }
+        (this._vaadinDialog as any).opened = false
+        this._uploadElement!.files = []
     }
 
     listenUploadBefore = (event: Event) => {
@@ -76,7 +79,7 @@ export class IndicationsExcel extends LitElement {
         const xhr = (event as CustomEvent).detail.xhr as XMLHttpRequest
         if (xhr.status == 200) {
             const uploadResult = JSON.parse(xhr.response) as UploadResult
-            const dialog = this.shadowRoot!.querySelector('vaadin-dialog') as any
+            const dialog = this._vaadinDialog as any
 
             dialog.renderer = function(root: any, _dialog: any) {
                 if (root.firstElementChild) {
@@ -113,8 +116,11 @@ export class IndicationsExcel extends LitElement {
             font-style: normal;
             font-weight: bold;
         }
-        report-control {
+        indications-excel-report-control {
             margin-top: 4em;
+        }
+        indications-excel-report-view {
+            height: 100%;
         }
         `
     }
@@ -131,7 +137,11 @@ export class IndicationsExcel extends LitElement {
         ></vaadin-upload>
         <span>prelucrare <em>.XLSX</em> fişiere (de la 2007 format standard al MICROSOFT OFFICE)</span>
         <vaadin-dialog no-close-on-esc no-close-on-outside-click></vaadin-dialog>
-        <report-control></report-control>
+        <indications-excel-report-control 
+            @indications-excel-show-report="${this.onShowReport}"
+            @indications-excel-clear-report="${this.onClearReport}"
+        ></indications-excel-report-control>
+        <indications-excel-report-view></indications-excel-report-view>
         `
     }
 

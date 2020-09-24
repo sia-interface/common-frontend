@@ -15,6 +15,16 @@ import {SelectElement} from "@vaadin/vaadin-select"
 
 import {UserHttpService} from "../services/http-service"
 
+export class ValueChangedEvent extends CustomEvent<string> {
+    static eventName = "value-changed"
+
+    constructor(detail: string) {
+        super(ValueChangedEvent.eventName, { detail, bubbles: true, composed: true})
+    }
+}
+
+export const NO_ELEMENT_VALUE = '--I--'
+
 @customElement('vaadin-select-serverside')
 export class VaadinSelectServerside<T> extends LitElement {
     @property({ type: String }) url: string = ''
@@ -51,7 +61,9 @@ export class VaadinSelectServerside<T> extends LitElement {
     }
 
     private changeSelectedValue(event: CustomEvent) {
-        this._selectedValue = event.detail.value
+        const value = event.detail.value
+        this._selectedValue = value
+        this.dispatchEvent(new ValueChangedEvent(value))
     }
 
     public async reload(selectedValue?: string) {
@@ -110,11 +122,11 @@ export class VaadinSelectServerside<T> extends LitElement {
             const listBox = window.document.createElement('vaadin-list-box')
             const vaadinItem = window.document.createElement('vaadin-item')
             vaadinItem.textContent = this.notElementsText
-            vaadinItem.setAttribute('value', 'I')
+            vaadinItem.setAttribute('value', '--I--')
             listBox.appendChild(vaadinItem)
             root.appendChild(listBox)
 
-            select.setAttribute('value', 'I')
+            select.setAttribute('value', '--I--')
             select.disabled = true
 
             if (this._renderer) {

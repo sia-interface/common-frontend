@@ -22,3 +22,14 @@ export interface RadioIndicationsInfo {
     sysdate:       string
     excelFilename: string
 }
+
+export interface RadioIndicationError {
+    rowIndex:      number
+    meterNumber:   string
+    meterReadings: number
+    receiveDate:   string
+    sistemaId:     number
+    nrContract:    string
+    address:       string
+    errorText:     string
+}

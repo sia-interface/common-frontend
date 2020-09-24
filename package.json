@@ -21,6 +21,7 @@
     "@vaadin/vaadin-date-picker": "^4.4.0",
     "@vaadin/vaadin-dialog": "^2.4.5",
     "@vaadin/vaadin-form-layout": "^2.3.0",
+    "@vaadin/vaadin-grid": "^5.7.4",
     "@vaadin/vaadin-icons": "^4.3.1",
     "@vaadin/vaadin-notification": "^1.6.0",
     "@vaadin/vaadin-ordered-layout": "^1.4.0",

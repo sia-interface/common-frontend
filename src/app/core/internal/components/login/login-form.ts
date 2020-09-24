@@ -34,7 +34,7 @@ export class LoginForm extends LitElement {
     private login() {
         let username = this.name!.value
         let password = this.pw!.value
-        this.dispatchEvent(new UserLoginEvent({username, password}));
+        this.dispatchEvent(new UserLoginEvent({username, password}))
     }
 
     private onChange() {

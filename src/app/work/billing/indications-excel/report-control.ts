@@ -9,10 +9,35 @@ import '../../../core/common/components/vaadin-select-serverside'
 
 import {ENVIRONMENT} from "../../../../environment"
 import {RadioIndicationsInfo} from "./model"
-import {VaadinSelectServerside} from "../../../core/common/components/vaadin-select-serverside"
-import {CloseDialogEvent} from "../../../core/common/utils";
+import {
+    NO_ELEMENT_VALUE,
+    VaadinSelectServerside,
+    ValueChangedEvent
+} from "../../../core/common/components/vaadin-select-serverside"
+import {CloseDialogEvent} from "../../../core/common/utils"
 
-@customElement('report-control')
+export interface ShowReportRequest {
+    reptype: string
+    fileid:  string
+}
+
+export class ShowReportEvent extends CustomEvent<ShowReportRequest> {
+    static eventName = "indications-excel-show-report"
+
+    constructor(detail: ShowReportRequest) {
+        super(ShowReportEvent.eventName, { detail, bubbles: true, composed: true})
+    }
+}
+
+export class ClearReportEvent extends CustomEvent<any> {
+    static eventName = "indications-excel-clear-report"
+
+    constructor() {
+        super(ClearReportEvent.eventName, { detail: {}, bubbles: true, composed: true})
+    }
+}
+
+@customElement('indications-excel-report-control')
 export class ReportControl extends LitElement {
     static listUrl = ENVIRONMENT.billingServiceUrl + "/indications/excel/list"
     static reportTypes = [
@@ -23,6 +48,8 @@ export class ReportControl extends LitElement {
 
     @internalProperty() preferredFileID: number = 0
     @internalProperty() selectedReportType: string = ReportControl.reportTypes[0].value
+
+    @internalProperty() private _selectedFileID: string = NO_ELEMENT_VALUE
 
     @query("#select-file-id") _selectElement?: VaadinSelectServerside<RadioIndicationsInfo>
 
@@ -61,12 +88,13 @@ export class ReportControl extends LitElement {
 
     public async refresh(event?: Event) {
         if (this._selectElement) {
-            let preferredId = 0
+            let preferredId = -1
             if (event && event instanceof CustomEvent){
                 preferredId = (event as CloseDialogEvent<any>).detail.fileid
             }
 
-            this._selectElement.reload(preferredId.toString())
+            this._selectElement.reload(preferredId === -1? undefined : preferredId.toString())
+            this.dispatchEvent(new ClearReportEvent())
         }
     }
 
@@ -75,7 +103,26 @@ export class ReportControl extends LitElement {
 
         if (newValue !== this.selectedReportType) {
             this.selectedReportType = newValue
+            this.dispatchEvent(new ClearReportEvent())
         }
+    }
+
+    private changeSelectedFileID(event: ValueChangedEvent) {
+        var newValue = event.detail
+
+        if (newValue !== this._selectedFileID) {
+            this._selectedFileID = newValue
+            this.dispatchEvent(new ClearReportEvent())
+        }
+    }
+
+    private showReport() {
+        const fileid = this._selectedFileID??this._selectElement!.value
+        const request = {
+            reptype: this.selectedReportType,
+            fileid
+        }
+        this.dispatchEvent(new ShowReportEvent(request))
     }
 
     protected render() {
@@ -92,6 +139,7 @@ export class ReportControl extends LitElement {
             label="Data şi fişierul"
             url="${ReportControl.listUrl}"
             notElementsText="Nu există fişiere încărcate"
+            @value-changed="${this.changeSelectedFileID}"
         ></vaadin-select-serverside>        
         
         <vaadin-select 
@@ -105,7 +153,10 @@ export class ReportControl extends LitElement {
             </vaadin-list-box>
             </template>
         </vaadin-select>
-        <vaadin-button>VIZUALIZEAZĂ</vaadin-button>
+        <vaadin-button 
+            @click="${this.showReport}" 
+            ?disabled="${this._selectedFileID === '' || this._selectedFileID === NO_ELEMENT_VALUE}"
+        >VIZUALIZEAZĂ</vaadin-button>
         </div>            
         `
     }
