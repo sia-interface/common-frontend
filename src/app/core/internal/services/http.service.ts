@@ -30,44 +30,52 @@ export class HttpService {
     // generic request 
     static request(method: string, url: string, options: {
         body?: any,
-        contentType?: 'json' | 'form',
+        contentType?: 'json' | 'form' | 'multipart',
         responseType: 'arraybuffer',
         authorizationToken?: string,
     }): Promise<ArrayBuffer>;
     static request(method: string, url: string, options: {
         body?: any,
-        contentType?: 'json' | 'form',
+        contentType?: 'json' | 'form' | 'multipart',
         responseType: 'blob'
         authorizationToken?: string,
     }): Promise<Blob>;
     static request(method: string, url: string, options: {
         body?: any,
-        contentType?: 'json' | 'form',
+        contentType?: 'json' | 'form' | 'multipart',
         responseType: 'text'
         authorizationToken?: string,
     }): Promise<string>;
     static request<R>(method: string, url: string, options: {
         body?: any,
-        contentType?: 'json' | 'form',
+        contentType?: 'json' | 'form' | 'multipart',
         responseType?: 'json',
         authorizationToken?: string,
     }): Promise<R>;
     static async request(method: string, url: string, options: {
         body?: any,
-        contentType?: 'json' | 'form',
+        contentType?: 'json' | 'form' | 'multipart',
         responseType?: 'arraybuffer'|'blob'|'json'|'text',
         authorizationToken?: string,
     } = {}): Promise<any> {
-        const headers = options && options.contentType === 'form'? generateFormHeaders() : generateJsonHeaders()
+        const isFormData = options && options.body && options.body instanceof FormData
+
+        const headers = isFormData? new Headers() :
+            (
+                options && options.contentType === 'form'? generateFormHeaders() : generateJsonHeaders()
+            )
 
         if (options.authorizationToken) {
             headers.append('Authorization', `Bearer ${options.authorizationToken}`)
         }
 
         const params = {
-            body: options? (
-                options.contentType === 'form'? options.body : JSON.stringify(options.body)
-            ) : undefined,
+            body: isFormData? options.body :
+                (
+                    options? (
+                        options.contentType === 'form'? options.body : JSON.stringify(options.body)
+                    ) : undefined
+                ),
             method,
             headers,
         }
@@ -128,31 +136,31 @@ export class HttpService {
     // post request
     static post(url: string, options: {
         body: any,
-        contentType?: 'json' | 'form',
+        contentType?: 'json' | 'form' | 'multipart',
         responseType: 'arraybuffer',
         authorizationToken?: string,
     }): Promise<ArrayBuffer>;
     static post(url: string, options: {
         body: any,
-        contentType?: 'json' | 'form',
+        contentType?: 'json' | 'form' | 'multipart',
         responseType: 'blob',
         authorizationToken?: string,
     }): Promise<Blob>;
     static post(url: string, options: {
         body: any,
-        contentType?: 'json' | 'form',
+        contentType?: 'json' | 'form' | 'multipart',
         responseType: 'text',
         authorizationToken?: string,
     }): Promise<string>;
     static post<R>(url: string, options: {
         body: any,
-        contentType?: 'json' | 'form',
+        contentType?: 'json' | 'form' | 'multipart',
         responseType?: 'json',
         authorizationToken?: string,
     }): Promise<R>;
     static post(url: string, options: {
         body: any,
-        contentType?: 'json' | 'form',
+        contentType?: 'json' | 'form' | 'multipart',
         responseType?: 'arraybuffer'|'blob'|'json'|'text',
         authorizationToken?: string,
     }): Promise<any> {

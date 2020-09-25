@@ -15,6 +15,7 @@ import {
     ValueChangedEvent
 } from "../../../core/common/components/vaadin-select-serverside"
 import {CloseDialogEvent} from "../../../core/common/utils"
+import {UserHttpService} from "../../../core/common/services/http-service";
 
 export interface ShowReportRequest {
     reptype: string
@@ -40,6 +41,8 @@ export class ClearReportEvent extends CustomEvent<any> {
 @customElement('indications-excel-report-control')
 export class ReportControl extends LitElement {
     static listUrl = ENVIRONMENT.billingServiceUrl + "/indications/excel/list"
+    static printUrl = ENVIRONMENT.billingServiceUrl + "/indications/excel/errors/print/"
+
     static reportTypes = [
         {value: "R", name: "Rînduri eronate" }, // row
         {value: "M", name: "Contoare nu găsite"}, // meter
@@ -69,7 +72,17 @@ export class ReportControl extends LitElement {
             margin-right: 5px;
         }
         #select-file-id {
-            width: 25em;
+            width: 41em;
+        }
+        .legend {
+            position: absolute;
+            display: inline-block;
+            width: 22em;
+            z-index: 200;
+            padding-left: 8px;
+            margin: 0 0 3.5em 27.3em;
+            background-color: var(--lumo-contrast-5pct);
+            font-size: 90%;
         }
         `
     }
@@ -81,9 +94,24 @@ export class ReportControl extends LitElement {
 
     protected firstUpdated() {
         if (this._selectElement) {
-            this._selectElement.renderer = i => html`${i.sysdate.substr(0, 10) + " " + i.excelFilename}`
+            this._selectElement.renderer = this.fileSelectorRenderer
             this._selectElement.valueExtractor = i => i.id.toString()
         }
+    }
+
+    private fileSelectorRenderer = (i: RadioIndicationsInfo) => {
+        return html`
+        <span style="width: 6em; display: inline-block;">${i.sysdate.substr(0, 10)}</span>
+        <span style="width: 13em; display: inline-block;">${i.excelFilename}</span>
+        
+        <span style="display: inline-block; padding: 0 2px 2px 8px;">
+            <iron-icon icon="vaadin:timer" style="height: 16px; width: 16px;"></iron-icon>
+        </span>
+        <span style="width: 2.5em; display: inline-block; text-align: right; color: gray;">${i.rowsTotal}</span>
+        <span style="width: 2.5em; display: inline-block; text-align: right; color: steelblue;">${i.rowsOk}</span>
+        <span style="width: 2.5em; display: inline-block; text-align: right; color: green;">${i.meters}</span>
+        <span style="width: 2.5em; display: inline-block; text-align: right; color: maroon;">${i.meterReadings}</span>
+        `
     }
 
     public async refresh(event?: Event) {
@@ -93,7 +121,7 @@ export class ReportControl extends LitElement {
                 preferredId = (event as CloseDialogEvent<any>).detail.fileid
             }
 
-            this._selectElement.reload(preferredId === -1? undefined : preferredId.toString())
+            this._selectElement.reload(preferredId === -1? undefined : preferredId?.toString())
             this.dispatchEvent(new ClearReportEvent())
         }
     }
@@ -125,6 +153,11 @@ export class ReportControl extends LitElement {
         this.dispatchEvent(new ShowReportEvent(request))
     }
 
+    private async printReport() {
+        const fileid = this._selectedFileID??this._selectElement!.value
+        await UserHttpService.loadPdfFromUrl(ReportControl.printUrl + fileid, "upload-errors_" + fileid + ".pdf")
+    }
+
     protected render() {
         return html`
         <info-message>RAPOARTE DESPRE FIŞIERE ÎNCĂRCATE</info-message>
@@ -141,7 +174,14 @@ export class ReportControl extends LitElement {
             notElementsText="Nu există fişiere încărcate"
             @value-changed="${this.changeSelectedFileID}"
         ></vaadin-select-serverside>        
-        
+        <span class="legend">
+            RÎNDURI:
+            <span style="width: 3.2em; display: inline-block; text-align: right; color: gray;">TOT.</span>
+            <span style="width: 3.2em; display: inline-block; text-align: right; color: steelblue;">OK.</span>
+            <span style="width: 3.3em; display: inline-block; text-align: right; color: green;">CONT.</span>
+            <span style="width: 3.3em; display: inline-block; text-align: right; color: maroon;">INDIC.</span>
+        </span>
+                
         <vaadin-select 
             label="Tipul raportului" 
             value="${this.selectedReportType}"
@@ -153,10 +193,16 @@ export class ReportControl extends LitElement {
             </vaadin-list-box>
             </template>
         </vaadin-select>
-        <vaadin-button 
+        <vaadin-button
+            theme="icon" aria-label="view"
             @click="${this.showReport}" 
             ?disabled="${this._selectedFileID === '' || this._selectedFileID === NO_ELEMENT_VALUE}"
-        >VIZUALIZEAZĂ</vaadin-button>
+        ><iron-icon icon="vaadin:desktop" slot="prefix"></iron-icon></vaadin-button>
+        <vaadin-button
+            theme="icon" aria-label="print-pdf"
+            @click="${this.printReport}"
+            ?disabled="${this._selectedFileID === '' || this._selectedFileID === NO_ELEMENT_VALUE}"
+        ><iron-icon icon="vaadin:print" slot="prefix"></iron-icon></vaadin-button>
         </div>            
         `
     }

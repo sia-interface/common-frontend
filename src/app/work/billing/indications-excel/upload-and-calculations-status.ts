@@ -1,4 +1,4 @@
-import {css, customElement, html, internalProperty, LitElement, property} from "lit-element"
+import {css, customElement, html, internalProperty, LitElement} from "lit-element"
 
 import '@vaadin/vaadin-button'
 import '@vaadin/vaadin-progress-bar'
@@ -9,13 +9,14 @@ import '../../../core/common/components/info-panel'
 import {CalculationStatus, UploadResult} from "./model"
 import {ElementAlign} from "../../../core/common/components/info-panel"
 import {ENVIRONMENT} from "../../../../environment";
-import {CloseDialogEvent, later} from "../../../core/common/utils";
+import {CloseDialogEvent, later} from "../../../core/common/utils"
 import {UserHttpService} from "../../../core/common/services/http-service"
 
 @customElement('upload-and-calculations-status')
 export class UploadAndCalculationsStatus extends LitElement {
-    @property({type: Object}) uploadResult?: UploadResult
+    static uploadTarget = ENVIRONMENT.billingServiceUrl + "/indications/excel/upload"
 
+    @internalProperty() uploadResult?: UploadResult
     @internalProperty() jobRunning: boolean = false
     @internalProperty() calculationStatus?: CalculationStatus
 
@@ -34,8 +35,11 @@ export class UploadAndCalculationsStatus extends LitElement {
             justify-content: flex-end;
         }
         .progress-bar {
-            margin-top: 1em;
+            padding: 2em 4em;
             color: darkgray;
+        }
+        vaadin-progress-bar {
+            width: 20em;
         }
         .buttons-bar vaadin-button {
             margin-left: 1em;
@@ -45,28 +49,34 @@ export class UploadAndCalculationsStatus extends LitElement {
 
     connectedCallback() {
         super.connectedCallback();
-
+        this.jobRunning = true
         this.calculationStatus = undefined
-        if (this.uploadResult) {
-            const result = this.uploadResult
-            this.loadAndShowCalcStatus(result.fileID)
-        }
     }
 
-    async loadAndShowCalcStatus(fileID: number) {
-        this.jobRunning = true
-        while (this.jobRunning) {
-            try {
+    public async loadAndShowCalcStatus(file: File) {
+        const formData: FormData = new FormData()
+        formData.append('file', file)
+
+        try {
+            const uploadUrl = UploadAndCalculationsStatus.uploadTarget
+            const result = await UserHttpService.post<UploadResult>(uploadUrl, { body: formData, contentType: 'multipart'})
+            this.uploadResult = result
+
+            const fileID = result.fileID
+
+            while (this.jobRunning) {
                 let status = await UserHttpService.get<CalculationStatus>(ENVIRONMENT.billingServiceUrl + "/indications/excel/status/" + fileID, {})
                 if (!status.jobRunning) {
                     this.jobRunning = false
                 }
                 this.calculationStatus = status
-            } catch (ex) {
+                if (this.jobRunning) {
+                    await later(1000)
+                }
             }
-            if (this.jobRunning) {
-                await later(2000)
-            }
+        } catch (ex) {
+            // TODO: show error message
+            this.jobRunning = false
         }
     }
 
@@ -75,14 +85,20 @@ export class UploadAndCalculationsStatus extends LitElement {
     }
 
     render() {
-        if (this.uploadResult) {
+        if (this.jobRunning) {
+            return this.renderJobRunning()
+        } else if (this.uploadResult) {
             const result = this.uploadResult
             return html`
+            <info-message>încărcarea și prelucrarea datelor finalizate</info-message>
             ${ this.renderStats(result) }
-            ${ this.jobRunning? this.renderJobRunning() : this.renderCalculationStatus() }            
+            ${ this.renderCalculationStatus() }            
             `
         } else {
-            return html`<info-message>informațiile despre excel fişier nu sunt disponibila</info-message>`
+            return html`
+            <info-message>informațiile despre excel fişier nu sunt disponibila</info-message>
+            <vaadin-button @click="${this.closeDialog}">ÎNCHIDE</vaadin-button>
+            `
         }
     }
 
@@ -101,7 +117,10 @@ export class UploadAndCalculationsStatus extends LitElement {
     private renderJobRunning() {
         return html`
             <div class="progress-bar">
-            ${this.calculationStatus && this.calculationStatus.searchCompleted ? "calculare a indicaţiilor" : "căutare a contoarelor"  }
+            ${ this.calculationStatus? 
+                (this.calculationStatus.searchCompleted ? 
+                    "calculare a indicaţiilor; calculate: " + this.calculationStatus.calculatedRowsCurrent : 
+                    "căutare a contoarelor") : "încărcarea fişierului"  }
             <vaadin-progress-bar indeterminate value="0"></vaadin-progress-bar>
             </div>            
         `
@@ -112,7 +131,7 @@ export class UploadAndCalculationsStatus extends LitElement {
             const status = this.calculationStatus
             const elements = [
                 {header: "contoare căutate", content: status.metersFoundRows.toString(), align: 'right' as ElementAlign },
-                {header: "indicaţii procesate", content: status.calculatedRows.toString(), align: 'right' as ElementAlign },
+                {header: "indicaţii procesate", content: status.calculatedRowsTotal.toString(), align: 'right' as ElementAlign },
             ]
             return html`
             <info-panel header="INFORMAŢIE DESPRE CALCUL" .elements="${elements}"></info-panel>

@@ -6,27 +6,27 @@ export class UserHttpService {
     // generic request
     static request(method: string, url: string, options: {
         body?: any,
-        contentType?: 'json' | 'form',
+        contentType?: 'json' | 'form' | 'multipart',
         responseType: 'arraybuffer'
     }): Promise<ArrayBuffer>;
     static request(method: string, url: string, options: {
         body?: any,
-        contentType?: 'json' | 'form',
+        contentType?: 'json' | 'form' | 'multipart',
         responseType: 'blob'
     }): Promise<Blob>;
     static request(method: string, url: string, options: {
         body?: any,
-        contentType?: 'json' | 'form',
+        contentType?: 'json' | 'form' | 'multipart',
         responseType: 'text'
     }): Promise<string>;
     static request<R>(method: string, url: string, options: {
         body?: any,
-        contentType?: 'json' | 'form',
+        contentType?: 'json' | 'form' | 'multipart',
         responseType?: 'json'
     }): Promise<R>;
     static async request(method: string, url: string, options: {
         body?: any,
-        contentType?: 'json' | 'form',
+        contentType?: 'json' | 'form' | 'multipart',
         responseType?: 'arraybuffer'|'blob'|'json'|'text'
     } = {}): Promise<any> {
         const authorizationToken = AUTHENTICATION.authorizationToken
@@ -69,31 +69,52 @@ export class UserHttpService {
     // post request
     static post(url: string, options: {
         body: any,
-        contentType?: 'json' | 'form',
+        contentType?: 'json' | 'form' | 'multipart',
         responseType: 'arraybuffer'
     }): Promise<ArrayBuffer>;
     static post(url: string, options: {
         body: any,
-        contentType?: 'json' | 'form',
+        contentType?: 'json' | 'form' | 'multipart',
         responseType: 'blob'
     }): Promise<Blob>;
     static post(url: string, options: {
         body: any,
-        contentType?: 'json' | 'form',
+        contentType?: 'json' | 'form' | 'multipart',
         responseType: 'text'
     }): Promise<string>;
     static post<R>(url: string, options: {
         body: any,
-        contentType?: 'json' | 'form',
+        contentType?: 'json' | 'form' | 'multipart',
         responseType?: 'json'
     }): Promise<R>;
     static post(url: string, options: {
         body: any,
-        contentType?: 'json' | 'form',
+        contentType?: 'json' | 'form' | 'multipart',
         responseType?: 'arraybuffer'|'blob'|'json'|'text'
     }): Promise<any> {
         return UserHttpService.request<any>('POST', url, options as any)
     }
+
+    static async loadPdfFromUrl(url: string, filename: string) {
+        const options = {
+            responseType: 'blob',
+            accept: 'application/pdf',
+        } as any
+
+        const data = await UserHttpService.request<Blob>('GET', url, options)
+
+        const blob = new Blob([data], { type: 'application/pdf' })
+        const fileUrl = window.URL.createObjectURL(data)
+
+        // let fileName = "fisa_" + props.cardInfo.routeNr + ".pdf"
+
+        if (window.navigator.msSaveOrOpenBlob) {
+            window.navigator.msSaveOrOpenBlob(blob, filename);
+        } else {
+            window.open(fileUrl, filename);
+        }
+    }
+
 
 }
 
