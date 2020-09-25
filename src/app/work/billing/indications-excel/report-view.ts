@@ -68,7 +68,7 @@ export class ReportView extends LitElement {
                 width: 100%;
             }
             vaadin-grid {
-                margin: 1em 2em;
+                margin: 1em;
                 height: calc(100% - 1.1em);
                 box-sizing: border-box;
             }

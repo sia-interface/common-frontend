@@ -11,16 +11,24 @@ export interface UploadResult {
 export interface CalculationStatus {
     jobRunning: boolean
     dataSaved:  boolean
+
     searchCompleted:      boolean
     calculationCompleted: boolean
+
     metersFoundRows: number
-    calculatedRows:  number
+    calculatedRowsCurrent:  number
+    calculatedRowsTotal:  number
 }
 
 export interface RadioIndicationsInfo {
     id:            number
     sysdate:       string
     excelFilename: string
+
+    rowsTotal:     number
+    rowsOk:        number
+    meters:        number
+    meterReadings: number
 }
 
 export interface RadioIndicationError {
