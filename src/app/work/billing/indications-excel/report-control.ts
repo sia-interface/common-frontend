@@ -75,12 +75,12 @@ export class ReportControl extends LitElement {
             width: 41em;
         }
         .legend {
-            position: absolute;
+            position: inherit;
             display: inline-block;
             width: 22em;
             z-index: 200;
             padding-left: 8px;
-            margin: 0 0 3.5em 27.3em;
+            margin: 0 30px 3.5em -23.2em;
             background-color: var(--lumo-contrast-5pct);
             font-size: 90%;
         }
